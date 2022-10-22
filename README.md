@@ -1,4 +1,4 @@
-# gravidade
+# 🪐gravidade🪐
 Para simulações básicas de gravidade.
 
 Este repositório centraliza uma parte dos scripts que faço para praticar algumas coisas que tenho aprendido.

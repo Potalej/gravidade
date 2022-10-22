@@ -3,7 +3,7 @@ Para simulações básicas de gravidade.
 
 Este repositório centraliza uma parte dos scripts que faço para praticar algumas coisas que tenho aprendido.
 
-<img src="https://www.linux.ime.usp.br/~potalej/img/gravidade.gif" alt="Exemplo" width="400" height="400">
+<img src="https://www.linux.ime.usp.br/~potalej/img/gravidade_exemplo.gif" alt="Exemplo" width="400" height="400">
 
 Meu estudo atualmente está seguindo através de um artigo publicado na _Physical Review Letters_ de autoria de Julian Barbour, Tim Koslowski e Flavio Mercati, chamado [Identification of a Gravitational Arrow of Time](https://physics.aps.org/featured-article-pdf/10.1103/PhysRevLett.113.181101). Este, porém, ainda é um resumo de um artigo mais completo dos mesmos autores chamado [A Gravitational Origin of the Arrows of Time](https://arxiv.org/abs/1310.5167), mas que ainda não me atrevi a adentrar.
 

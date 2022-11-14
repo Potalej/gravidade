@@ -44,8 +44,3 @@ class condicoesIniciais:
         print(H(ps, self.massas))
 
         return R, P
-
-
-# massas = [500 for i in range(25)]
-# x = random.sample(range(-300, 300, 10), 25)
-# y = random.sample(range(-300, 300, 10), 25)

@@ -9,6 +9,7 @@ class condicoesIniciais:
     def __init__ (self, massas:list=[]):
         self.massas = massas
         self.qntdCorpos = len(massas)
+        self.qntd_tipo = 1 if self.qntdCorpos % 2 == 0 else 0 # par (1) ou ímpar (0)
 
     def posicoes (self, intervalo:list, distancia_minima:float, inteiros:bool=True):
         a,b = intervalo
@@ -18,8 +19,18 @@ class condicoesIniciais:
     
     def momentos (self, intervalo:list, inteiros:bool=True):
         a,b = intervalo
-        x = [random.randrange(a, b) for i in range(self.qntdCorpos)]
-        y = [random.randrange(a, b) for i in range(self.qntdCorpos)]
+        qntd = int(self.qntdCorpos/2) if self.qntd_tipo else int((self.qntdCorpos-1)/2)
+        
+        x =  [random.randrange(a, b) for i in range(qntd)]
+        x2 = [-xi for xi in x]
+        if not self.qntd_tipo: x2.append(0)
+        x += x2
+
+        y =  [random.randrange(a, b) for i in range(qntd)]
+        y2 = [-yi for yi in y]
+        if not self.qntd_tipo: y2.append(0)
+        y += y2
+
         return x, y
 
     def juntar_ps (self, x, y, px, py):
@@ -41,6 +52,5 @@ class condicoesIniciais:
         P = [[px[i], py[i]] for i in range(self.qntdCorpos)]
 
         ps = self.juntar_ps(x,y,px,py)
-        print(H(ps, self.massas))
 
         return R, P

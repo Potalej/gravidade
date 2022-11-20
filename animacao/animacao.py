@@ -101,7 +101,7 @@ class Animacao:
 
             redimensionado = pygame.transform.smoothscale(self.superficie, self.tela.get_size())
             self.tela.blit(redimensionado, (0,0))
-            pygame.display.flip()
+            # pygame.display.flip()
 
             if animacao['EXIBIR_FPS']:
                 fps = texto_fps.render(f"FPS: {round(clock.get_fps(), 2)}", True, animacao['COR_FONTE'])

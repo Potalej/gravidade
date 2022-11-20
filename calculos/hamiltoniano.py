@@ -49,3 +49,23 @@ def ajustar (fs:list, tk:float, yk:list, m:list, e0:float, F:float)->float:
         yk[i] -= dif[i]
 
     return yk, e
+
+def Rcm (fs:list, m:list)->float:
+    rcm = []    
+    X, Y = fs[::4], fs[2::4]
+    for i, mi in enumerate(m):
+        rcm[0] += mi*X[i]
+        rcm[1] += mi*Y[i]
+    mtot = sum(m)
+    rcm = [rcm[0]/mtot, rcm[1]/mtot]
+    return rcm
+
+def prodvetR2(a, b): return a[0]*b[1] - a[1]*b[0]
+
+def momentoAngular (fs:list)->float:
+    soma = 0
+    X, Y = fs[::4], fs[2::4]
+    Px, Py = fs[1::4], fs[3::4]
+    for i in range(len(X)):
+        soma += prodvetR2([X[i], Y[i]], [Px[i], Py[i]])
+    return soma

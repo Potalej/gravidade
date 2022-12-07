@@ -3,6 +3,7 @@
 """
 from numpy import array, transpose, identity, einsum, true_divide, ones
 from calculos.colisoes import verificaColisoes
+from calculos.hamiltoniano import ajustar, H
 from time import time
 
 class RK4:
@@ -46,6 +47,27 @@ class RK4:
     def runge_kutta4(self, tn:list, yn:list, F):
         yn1 = []
         for indice, fi in enumerate(self.f):
+            tk = time()
+            # k1 = h f(x0,y0)
+            k1 = self.h*fi(tn, F, *yn)
+
+            # k2 = hf(x0 + 0.5*h, y0 + 0.5*k1)
+            k2 = self.h*fi(tn + 0.5*self.h, F, *[yni + 0.5*k1 for yni in yn])
+
+            # k3 = hf(x0 + 0.5*h, 60 + 0.5*k2)
+            k3 = self.h*fi(tn + 0.5*self.h, F, *[yni + 0.5*k2 for yni in yn])
+
+            # k4 = hf(x0 + h, y0 + k3)
+            k4 = self.h*fi(tn + self.h, F, *[yni + k3 for yni in yn])
+            
+            y1 = yn[indice] + (1/6) * (k1 + 2*k2 + 2*k3 + k4)
+            yn1.append(y1)
+            self.tempork4.append(time() - tk)
+        return tn + self.h, yn1
+
+    def runge_kutta4_geral(self, tn:list, yn:list, F): # mais lenta
+        yn1 = []
+        for indice, fi in enumerate(self.f):
             kappas = []
             tk = time()
             kappas.append(fi(tn+self.C[0]*self.h, F, *yn))
@@ -58,14 +80,13 @@ class RK4:
             self.tempork4.append(time() - tk)
         return tn + self.h, yn1
 
-    def aplicarNVezes (self, tn:float, yn:list, n=1):
+    def aplicarNVezes (self, tn:float, yn:list, n=1, E=0):
         for _ in range(n):
             F = self.forcas(yn)
-
             tn, yn = self.runge_kutta4(tn, yn, F)
-
-            
-            yn = verificaColisoes(self.m, yn)
-            
+            yn, houve_colisao = verificaColisoes(self.m, yn)
+            # tem que fazer a correção aqui
+            # if not houve_colisao:
+            #     yn, e = ajustar(self.f, tn, yn, self.m, E, F)
 
         return tn, yn, F

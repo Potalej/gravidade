@@ -7,7 +7,8 @@
 
 ### Partículas
 particulas = {
-    "DENSIDADE": 10,
+    # "DENSIDADE": 10,
+    "DENSIDADE": 1,
 }
 
 ### Animação

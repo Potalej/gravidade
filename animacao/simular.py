@@ -1,8 +1,9 @@
 from calculos.gravidade import Gravidade
 from calculos.integracao import RK4 as metodo_integracao
-from calculos.hamiltoniano import H
+from calculos.hamiltoniano import H, U
 from animacao.animacao import Animacao
 from config.configs import animacao
+from calculos.auxiliares import momento_inercia_cm_ps
 
 QUANTIDADE_ANTES_SALVAR = animacao['QUANTIDADE_ANTES_SALVAR']
 
@@ -47,13 +48,14 @@ class Simulacao (Animacao):
 
     def funcaoLimitada (self):
         for _ in range(self.qntdFrames):
-            self.tk, self.yk, self.F = self.metodo.aplicarNVezes(self.tk, self.yk, n=10)
+            self.tk, self.yk, self.F = self.metodo.aplicarNVezes(self.tk, self.yk, n=10, E=self.E0)
             self.E = H(self.yk, self.massas)
+            self.V = U(self.yk, self.massas)
             yield [*self.yk[::2], self.E]    
     
     def funcaoIlimitada (self):
         while True:
-            self.tk, self.yk, self.F = self.metodo.aplicarNVezes(self.tk, self.yk, n=10)
+            self.tk, self.yk, self.F = self.metodo.aplicarNVezes(self.tk, self.yk, n=10, E=self.E0)
             self.E = H(self.yk, self.massas)
             yield [*self.yk[::2], self.E]    
 
@@ -61,6 +63,7 @@ class Simulacao (Animacao):
         """"""
         self.salvar_cores(self.quantidade_corpos)
         self.qntdFrames = qntdFrames
+        print("E0: ", self.E0)
         if exibir:
             # inicia o PyGame
             self.iniciarPyGame(self.titulo)
@@ -79,3 +82,26 @@ class Simulacao (Animacao):
                     YK = []
             if len(YK) >= 0:
                 self.salvarPontos(YK, nomeArquivo)
+
+    # PROVISÓRIO
+    def complexidade (self, I):
+        L_rms = (I**.5)/self.mtot
+        L_mhl = (self.mtot**2)/abs(self.V)
+        C = L_rms/L_mhl
+        return C
+
+    def simularMomentoInercia (self, qntdFrames=1):
+        """Para testar o momento de inércia."""
+        self.qntdFrames = qntdFrames
+        I = []
+        YK = []
+        C = []
+        E_total = []
+        self.mtot = sum(self.massas)
+        for frame in self.funcaoLimitada():
+            yk = frame[:-1]
+            YK.append(yk)
+            I.append(momento_inercia_cm_ps(self.massas, yk))
+            C.append(self.complexidade(I[-1]))
+            E_total.append(frame[-1])
+        return I, E_total, C, YK

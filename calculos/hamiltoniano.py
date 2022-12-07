@@ -37,7 +37,6 @@ def gradH (fs:list, tk:float, yk:list, F:float):
     return comps
 
 def ajustar (fs:list, tk:float, yk:list, m:list, e0:float, F:float)->float:
-
     e = H(yk, m)
     grad = gradH(fs, tk, yk, F)
     norma_grad2 = sum(g*g for g in grad)

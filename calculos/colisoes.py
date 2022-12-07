@@ -37,6 +37,8 @@ def verificaColisoes (massas, yk):
     idx = 0
     C = []
 
+    houve_colisao = False
+
     while idx < qntd:
         jdx = idx if len(C)== 0 else C[-1]
         jdx += 1
@@ -44,6 +46,7 @@ def verificaColisoes (massas, yk):
         while jdx < qntd:
             if X[I[idx]]*densidade + massas[I[idx]] >= X[I[jdx]]*densidade - massas[I[jdx]]:
                 C.append(jdx)
+                houve_colisao = True
                 jdx += 1
             else: break
 
@@ -70,4 +73,4 @@ def verificaColisoes (massas, yk):
 
         C = C[1:]
 
-    return yk
+    return yk, houve_colisao

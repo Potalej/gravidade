@@ -1,32 +1,9 @@
-"""
-    Algumas condições iniciais que podem ser convenientes
-"""
-
-from math import sqrt, pi, cos, sin
-from calculos.hamiltoniano import EC, U
-import random
-
-class condicoesIniciais:
-    def __init__ (self, massas:list=[]):
-        self.massas = massas
-        self.qntdCorpos = len(massas)
-        # par (1) ou ímpar (0)
-        self.qntd_tipo = 1 if self.qntdCorpos % 2 == 0 else 0
-    
-    def juntar_ps (self, x, y, px, py):
-        ps = []
-        for i in range(self.qntdCorpos):
-            ps += [x[i], px[i], y[i], py[i]]
-
-    def gerar_massas (self, m_min: float, m_max:float, qntd:float, inteiras:bool=True):
-        """Gera massas aleatórias num intervalo dado."""
-        if inteiras: self.massas = [random.randint(m_min, m_max) for i in range(qntd)]
-        else: self.massas = [random.randrange(m_min, m_max) for i in range(qntd)]
-        self.qntdCorpos = len(self.massas)
-        return self.massas
+from condicoesIniciais.condicoesIniciais import condicoesIniciais
+from math import sqrt, sin, cos, pi
+from calculos.hamiltoniano import U, EC
 
 
-class condicoesArtigo (condicoesIniciais):
+class condicoesArtigoEspecial (condicoesIniciais):
     def __init__ (self, massas:list=[]):
         super().__init__(massas)
 

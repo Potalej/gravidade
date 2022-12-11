@@ -7,8 +7,9 @@
 
 ### Partículas
 particulas = {
-    # "DENSIDADE": 10,
-    "DENSIDADE": 1,
+    # "DENSIDADE": 30,
+    "DENSIDADE": 10,
+    # "DENSIDADE": 20,
 }
 
 ### Animação
@@ -43,7 +44,7 @@ animacao = {
     "TAXA_ATUALIZACAO": 60,
 
     # quantidade de pontos guardados antes de salvar
-    "QUANTIDADE_ANTES_SALVAR": 250
+    "QUANTIDADE_ANTES_SALVAR": 100
 }
 
 ### Arquivo que armazena informações de simulação

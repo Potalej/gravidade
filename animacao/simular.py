@@ -1,9 +1,11 @@
-from calculos.gravidade import Gravidade
+from pontos.gravidade import Gravidade
 from calculos.integracao import RK4 as metodo_integracao
-from calculos.hamiltoniano import H, U
+from calculos.hamiltoniano import H, U, EC
 from animacao.animacao import Animacao
 from config.configs import animacao
 from calculos.auxiliares import momento_inercia_cm_ps
+from time import time
+from numpy import array
 
 QUANTIDADE_ANTES_SALVAR = animacao['QUANTIDADE_ANTES_SALVAR']
 
@@ -26,13 +28,10 @@ class Simulacao (Animacao):
         self.R0, self.P0 = R0, P0
         # estabelecendo condições iniciais
         self.condicoesIniciais()
-        # gerando as equações
-        g = Gravidade(self.massas, G=G)
-        equacoes = []
-        for equacao in g.equacoes: equacoes += equacao
+
         # inicializa o método
         self.h = h
-        self.metodo = metodo_integracao(m = self.massas, f = equacoes, h = self.h)
+        self.metodo = metodo_integracao(m = self.massas, h = self.h)
         # energia inicial
         self.E0 = H(self.yk, self.massas) 
         self.E = self.E0 # energia
@@ -45,6 +44,7 @@ class Simulacao (Animacao):
             for i in range(2): # 2 é a dimensão do espaço
                 self.yk.append(self.R0[corpo][i])
                 self.yk.append(self.P0[corpo][i])
+        self.yk = array(self.yk)
 
     def funcaoLimitada (self):
         for _ in range(self.qntdFrames):
@@ -79,6 +79,7 @@ class Simulacao (Animacao):
                 YK.append(frame)
                 if len(YK) == QUANTIDADE_ANTES_SALVAR:
                     self.salvarPontos(YK, nomeArquivo)
+                    qnts += len(YK)
                     YK = []
             if len(YK) >= 0:
                 self.salvarPontos(YK, nomeArquivo)
@@ -98,10 +99,14 @@ class Simulacao (Animacao):
         C = []
         E_total = []
         self.mtot = sum(self.massas)
+        tempo = []
+        tempo0 = time()
         for frame in self.funcaoLimitada():
+            tempo.append(time() - tempo0)
             yk = frame[:-1]
-            YK.append(yk)
+            YK.append(self.yk)
             I.append(momento_inercia_cm_ps(self.massas, yk))
             C.append(self.complexidade(I[-1]))
             E_total.append(frame[-1])
-        return I, E_total, C, YK
+            tempo0 = time()
+        return I, E_total, C, YK, tempo, self.metodo.tempork4

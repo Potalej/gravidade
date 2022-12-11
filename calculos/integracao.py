@@ -1,17 +1,20 @@
 """
     Onde é feita a integração numérica via Runge-Kutta.
 """
-from numpy import array, transpose, identity, einsum, true_divide, ones
+from numpy import array, transpose, identity, einsum, true_divide, ones, ravel
 from calculos.colisoes import verificaColisoes
 from calculos.hamiltoniano import ajustar, H
-from time import time
 
 class RK4:
-    def __init__ (self, m:list, f:list, h:float=0.05):
+    def __init__ (self, m:list, h:float=0.05):
         self.qntd = len(m)
         self.m = m
+
+        self.m2vezesdiv = []
+        for mi in m: self.m2vezesdiv += [1/mi, 1/mi]
+        self.m2vezesdiv = array([self.m2vezesdiv])
+
         self.guardar_massas()
-        self.f = f # funções
         self.h = h
         self.A = [array([]), array([1/2]), array([0,1/2]), array([0,0,1])]
         self.A = [Ai * h for Ai in self.A]
@@ -42,51 +45,45 @@ class RK4:
         # matriz de forças
         F = true_divide(self.prodM, norma)
         F = einsum('ij,ijk->ijk', -F, difX)
-        return F
+        
+        Fsoma = []
+        for linha in F:
+            Fsoma += [0,0]
+            for coluna in linha:
+                Fsoma[-2] += coluna[0]
+                Fsoma[-1] += coluna[1]
+        return F, Fsoma
 
-    def runge_kutta4(self, tn:list, yn:list, F):
-        yn1 = []
-        for indice, fi in enumerate(self.f):
-            tk = time()
-            # k1 = h f(x0,y0)
-            k1 = self.h*fi(tn, F, *yn)
+    def runge_kutta4(self, tn:list, yn, F, Fsoma):
+        # separando a lista por posições e momentos
+        P = [yn[1::2]]
+        R = [yn[::2]]
 
-            # k2 = hf(x0 + 0.5*h, y0 + 0.5*k1)
-            k2 = self.h*fi(tn + 0.5*self.h, F, *[yni + 0.5*k1 for yni in yn])
+        # faz a integração sobre as equações x'
+        k1_vet = P*self.m2vezesdiv
+        k1_1m = k1_vet*self.m2vezesdiv
+        k1_2m = k1_1m*self.m2vezesdiv
+        k1_3m = k1_2m*self.m2vezesdiv
 
-            # k3 = hf(x0 + 0.5*h, 60 + 0.5*k2)
-            k3 = self.h*fi(tn + 0.5*self.h, F, *[yni + 0.5*k2 for yni in yn])
+        fator = (self.h/6) * (6*k1_vet + 3*self.h*k1_1m + self.h**2 * k1_2m + 0.25*self.h**3 * k1_3m)
+        posicoes = R + fator
 
-            # k4 = hf(x0 + h, y0 + k3)
-            k4 = self.h*fi(tn + self.h, F, *[yni + k3 for yni in yn])
-            
-            y1 = yn[indice] + (1/6) * (k1 + 2*k2 + 2*k3 + k4)
-            yn1.append(y1)
-            self.tempork4.append(time() - tk)
-        return tn + self.h, yn1
+        # integração sobre as equações p'
+        vetores_forcas = P[0] + self.h*array([Fsoma])
 
-    def runge_kutta4_geral(self, tn:list, yn:list, F): # mais lenta
-        yn1 = []
-        for indice, fi in enumerate(self.f):
-            kappas = []
-            tk = time()
-            kappas.append(fi(tn+self.C[0]*self.h, F, *yn))
-            for i in range(1,4):
-                ein = einsum('i,i', self.A[i], array(kappas))
-                kappa = yn + ein
-                kappas.append(fi(tn+self.C[i], F, *kappa))
-            y1 = yn[indice] + einsum('i,i', array(kappas), self.B)
-            yn1.append(y1)
-            self.tempork4.append(time() - tk)
+        # intercalando
+        yn1 = ravel([posicoes[0], vetores_forcas[0]], order="F")
+
         return tn + self.h, yn1
 
     def aplicarNVezes (self, tn:float, yn:list, n=1, E=0):
         for _ in range(n):
-            F = self.forcas(yn)
-            tn, yn = self.runge_kutta4(tn, yn, F)
+            F, Fsoma = self.forcas(yn)
+            tn, yn = self.runge_kutta4(tn, yn, F, Fsoma)
             yn, houve_colisao = verificaColisoes(self.m, yn)
             # tem que fazer a correção aqui
             # if not houve_colisao:
             #     yn, e = ajustar(self.f, tn, yn, self.m, E, F)
+            # yn, e = ajustar(self.f, tn, yn, self.m, E, F)
 
         return tn, yn, F

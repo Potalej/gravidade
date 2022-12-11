@@ -54,7 +54,7 @@ class condicoesArtigo (condicoesIniciais):
 
         # 4) zerar a energia total
         self.zerar_energia_total(energia_potencial)
-        # self.juntar_ps()
+        self.juntar_ps()
         # energia_cinetica = EC(self.ps, self.massas)
         # print('4ª garantia: Ec + V = ', energia_cinetica+energia_potencial)
 

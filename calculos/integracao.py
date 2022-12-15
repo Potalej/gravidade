@@ -1,89 +1,122 @@
 """
-    Onde é feita a integração numérica via Runge-Kutta.
+    Integração numérica via Runge-Kutta de 4ª ordem (RK4).
 """
-from numpy import array, transpose, identity, einsum, true_divide, ones, ravel
+
+from numpy import array, transpose, identity, ones, einsum, true_divide
 from calculos.colisoes import verificaColisoes
-from calculos.hamiltoniano import ajustar, H
 
 class RK4:
-    def __init__ (self, m:list, h:float=0.05):
-        self.qntd = len(m)
-        self.m = m
 
-        self.m2vezesdiv = []
-        for mi in m: self.m2vezesdiv += [1/mi, 1/mi]
-        self.m2vezesdiv = array([self.m2vezesdiv])
+    """
+        O método RK4 já se encontra adaptado para as condições
+        de sistemas de partículas do problema inicial. Uma versão
+        mais generalizada pode ser encontrada em commits antigos.
 
-        self.guardar_massas()
+        Parâmetros
+        ----------
+        massas : list
+            Lista de massas das partículas.
+        h : float = 0.05
+            Tamanho do passo de integração.
+        G : float = 1
+            Constante de gravitação universal.
+    """
+
+    def __init__ (self, massas:list, h:float=0.05, G:float=1):
+
+        # quantidade de partículas
+        self.qntd = len(massas)
+
+        # passo de integração
         self.h = h
-        self.A = [array([]), array([1/2]), array([0,1/2]), array([0,0,1])]
-        self.A = [Ai * h for Ai in self.A]
-        self.B = self.h * array([0,1/2,1/2,1])
-        self.C = self.h * array([0,1/2,1/2,1])
-        self.tempork4 = []
 
-    def guardar_massas (self):
-        """Armazena os produtos das massas em uma matriz"""
+        # constante de gravitação universal
+        self.G = G
+
+        # monta os vetores de massas
+        self.guardar_massas(massas)
+
+        self.vetorUm = ones((self.qntd, self.qntd))
+        self.identidade = identity(self.qntd)
+
+    def guardar_massas (self, massas:list)->None:
+        """
+            Guarda a lista de massas passadas nas formas
+            de matriz (`prodM`) e vetor de massas inversas.
+
+            Parâmetros
+            ----------
+            massas : list
+                Lista de massas das partículas.
+        """
+        # vetor de massas
+        self.massas = array(massas)
+
+        # vetor de massas invertidas
+        self.massasDuplicadasInvertidas = []
+        for mi in massas: self.massasDuplicadasInvertidas += [[1/mi, 1/mi]]
+        self.massasDuplicadasInvertidas = array(self.massasDuplicadasInvertidas)
+
+        # matriz de produto de massas (facilita o cálculo das forças)
         MA = array([
-            [0 if j == i else self.m[j] for j in range(self.qntd)]
+            [0 if j == i else self.massas[j] for j in range(self.qntd)]
         for i in range(self.qntd)])
         self.prodM = MA * transpose(MA)
+    
+    def forcas (self, R)->tuple:
+        """
+            Monta a matriz de forças entre cada partícula e a matriz de soma das forças
+            para cada partícula.
 
-    def forcas (self, yk):
+            Parâmetros
+            ----------
+            R : np.array
+                Vetor de posições das partículas.
+        """
         # coordenadas
-        X = [[[yk[4*i], yk[4*i+2]]] for i in range(self.qntd)]
+        X = [[Ri] for Ri in R]
         # matriz X cheia
-        X_cheia = einsum('ij,ijk->ijk', ones((self.qntd, self.qntd)), X)
-        # matriz identidade
-        I_n = identity(self.qntd)
+        X_cheia = einsum('ij,ijk->ijk', self.vetorUm, X)
         # matriz X sem a diagonal
-        X = X_cheia - einsum('ij,ijk->ijk', I_n, X)
+        X = X_cheia - einsum('ij,ijk->ijk', self.identidade, X)
         # diferença
         difX = X - X.transpose(1,0,2)
         # norma
-        norma = (einsum('ijk,ijk->ij', difX, difX))**(3/2) + I_n
+        norma = einsum('ijk,ijk->ij', difX, difX)**(3/2) + self.identidade
         # matriz de forças
         F = true_divide(self.prodM, norma)
-        F = einsum('ij,ijk->ijk', -F, difX)
-        
-        Fsoma = []
+        F = self.G*einsum('ij,ijk->ijk', -F, difX)
+
+        # matriz de soma das forças
+        FSomas = []
         for linha in F:
-            Fsoma += [0,0]
+            FSomas += [[0,0]]
             for coluna in linha:
-                Fsoma[-2] += coluna[0]
-                Fsoma[-1] += coluna[1]
-        return F, Fsoma
+                FSomas[-1][0] += coluna[0]
+                FSomas[-1][1] += coluna[1]
+        return F, array(FSomas)
 
-    def runge_kutta4(self, tn:list, yn, F, Fsoma):
-        # separando a lista por posições e momentos
-        P = [yn[1::2]]
-        R = [yn[::2]]
-
+    def runge_kutta4 (self, R, P, FSomas):
+        """
+            Método RK4 adaptado para os sistemas em questão.
+        """
         # faz a integração sobre as equações x'
-        k1_vet = P*self.m2vezesdiv
-        k1_1m = k1_vet*self.m2vezesdiv
-        k1_2m = k1_1m*self.m2vezesdiv
-        k1_3m = k1_2m*self.m2vezesdiv
+        k1_vet = P*self.massasDuplicadasInvertidas
+        k1_1m = k1_vet*self.massasDuplicadasInvertidas
+        k1_2m = k1_1m*self.massasDuplicadasInvertidas
+        k1_3m = k1_2m*self.massasDuplicadasInvertidas
 
         fator = (self.h/6) * (6*k1_vet + 3*self.h*k1_1m + self.h**2 * k1_2m + 0.25*self.h**3 * k1_3m)
-        posicoes = R + fator
+        novas_posicoes = R + fator
 
         # integração sobre as equações p'
-        vetores_forcas = P[0] + self.h*array([Fsoma])
+        novos_momentos = P + self.h*FSomas
 
-        # intercalando
-        yn1 = ravel([posicoes[0], vetores_forcas[0]], order="F")
+        return novas_posicoes, novos_momentos
 
-        return tn + self.h, yn1
-
-    def aplicarNVezes (self, tn:float, yn:list, n=1, E=0):
+    def aplicarNVezes (self, R, P, n=1, E=0):
         for _ in range(n):
-            F, Fsoma = self.forcas(yn)
-            tn, yn = self.runge_kutta4(tn, yn, F, Fsoma)
-            yn, houve_colisao = verificaColisoes(self.m, yn)
-            # tem que fazer a correção aqui
-            # if not houve_colisao:
-            #     yn, e = ajustar(self.f, tn, yn, self.m, E, F)
-            # yn, e = ajustar(self.f, tn, yn, self.m, E, F)
-
-        return tn, yn, F
+            F, FSomas = self.forcas(R)
+            R, P = self.runge_kutta4(R, P, FSomas)
+            R, P, houve_colisao = verificaColisoes(self.massas, R, P)
+        return R, P, F 

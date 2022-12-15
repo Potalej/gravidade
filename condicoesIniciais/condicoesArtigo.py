@@ -1,5 +1,5 @@
 from condicoesIniciais.condicoesIniciais import condicoesIniciais
-from calculos.hamiltoniano import U, EC
+from calculos.hamiltoniano import U_ps, EC_ps
 from calculos.auxiliares import *
 
 class condicoesArtigo (condicoesIniciais):
@@ -50,7 +50,7 @@ class condicoesArtigo (condicoesIniciais):
         self.zerar_momento_angular()
         # print('3ª Condição: L =', self.L)
 
-        energia_potencial = U(self.juntar_ps(), self.massas)
+        energia_potencial = U_ps(self.juntar_ps(), self.massas)
 
         # 4) zerar a energia total
         self.zerar_energia_total(energia_potencial)
@@ -108,7 +108,7 @@ class condicoesArtigo (condicoesIniciais):
 
     def zerar_energia_total (self, energia_potencial):
         self.juntar_ps()
-        energia_cinetica = EC(self.ps, self.massas)
+        energia_cinetica = EC_ps(self.ps, self.massas)
         fator = (-energia_potencial/energia_cinetica)**.5
         
         for i in range(self.qntdCorpos):

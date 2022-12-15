@@ -4,7 +4,7 @@
 
 from math import sqrt
 
-def EC (ps:list, m:list)->float:
+def EC_ps (ps:list, m:list)->float:
     soma = 0
     for a in range(len(m)):
         pa = [
@@ -14,18 +14,40 @@ def EC (ps:list, m:list)->float:
         soma += pi_pa/(2*m[a])
     return soma
 
-def U (ps:list, m:list)->float:
+def EC (P, m:list)->float:
+    soma = 0
+    for a in range(len(m)):
+        pa = P[a]
+        pi_pa = sum(pa_i**2 for pa_i in pa)
+        soma += pi_pa/(2*m[a])
+    return soma
+
+def U_ps (ps:list, m:list)->float:
     soma = 0
     for b in range(1, len(m)):
         for a in range(b):
             ra = [ps[4*a], ps[4*a+2]]
             rb = [ps[4*b], ps[4*b+2]]
             dist = sqrt(sum((ra[i] - rb[i])**2 for i in range(len(ra))))
-            if dist > 10:
+            soma += m[a]*m[b]/dist
+    return -soma
+
+def U (R, m:list)->float:
+    soma = 0
+    for b in range(1, len(m)):
+        for a in range(b):
+            ra = R[a]
+            rb = R[b]
+            dist = sqrt(sum((ra[i] - rb[i])**2 for i in range(len(ra))))
+            if dist > 10: # ?????????????????????
                 soma += m[a]*m[b]/dist
     return -soma
 
-def H (ps:list, m:list)->float:
+def H (R, P, m:list)->float:
+    """Energia total"""
+    return EC(P, m) + U(R, m)
+
+def H_ps (ps:list, m:list)->float:
     """Energia total"""
     return EC(ps, m) + U(ps, m)
 

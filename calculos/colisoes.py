@@ -27,11 +27,11 @@ def colisoes (m1, m2, x1, y1, x2, y2, px1, py1, px2, py2):
 def dist (x1, y1, x2, y2):
     return ((x2-x1)**2 + (y2-y1)**2)**.5
 
-def verificaColisoes (massas, yk):
+def verificaColisoes (massas, R, P):
     qntd = len(massas)
 
-    X = yk[::4]
-    Y = yk[2::4]
+    X = [Ri[0] for Ri in R]
+    Y = [Ri[1] for Ri in R]
     I = argsort(X) # sweep and prune
 
     idx = 0
@@ -58,19 +58,19 @@ def verificaColisoes (massas, yk):
                 m2 = massas[I[jdx_C]]
 
                 if dist(x1,y1,x2,y2) * densidade <= (m1+m2):
-                    px1, px2 = yk[I[idx]*4+1], yk[I[jdx_C]*4+1]
-                    py1, py2 = yk[I[idx]*4+3], yk[I[jdx_C]*4+3]
+                    px1, px2 = P[I[idx]][0], P[I[jdx_C]][0]
+                    py1, py2 = P[I[idx]][1], P[I[jdx_C]][1]
                     v1, v2 = colisoes(m1, m2, x1, y1, x2, y2, px1, py1, px2, py2)
 
-                    yk[I[idx] * 4 + 1] = v1[0] * m1
-                    yk[I[idx] * 4 + 3] = v1[1] * m1
+                    P[I[idx]][0] = v1[0] * m1
+                    P[I[idx]][1] = v1[1] * m1
 
-                    yk[I[jdx_C] * 4 + 1] = v2[0] * m2
-                    yk[I[jdx_C] * 4 + 3] = v2[1] * m2
-            
+                    P[I[jdx_C]][0] = v2[0] * m2
+                    P[I[jdx_C]][1] = v2[1] * m2
+
             idx = C[0]
         else: idx += 1
 
         C = C[1:]
 
-    return yk, houve_colisao
+    return R, P, houve_colisao

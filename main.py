@@ -26,5 +26,5 @@ condicoes = condicoesArtigo()
 condicoes.gerarBasico(configs)
 condicoes.condicionar()
 
-S = Simulacao(condicoes.massas, condicoes.r, condicoes.p)
+S = Simulacao(condicoes.massas, condicoes.r, condicoes.p, G=15)
 S.simular(exibir=True, salvar=False)

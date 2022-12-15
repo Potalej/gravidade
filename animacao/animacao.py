@@ -37,11 +37,11 @@ class Animacao:
             for posicao in passos:
                 yield [float(coord) for coord in posicao.split(',')]
 
-    def desenhar (self, yk:list):
+    def desenhar (self, R):
         """Animação de um passo"""
         for corpo in range(self.quantidade_corpos):
-            x = yk[corpo*2] + self.ESCALA * self.LARGURA / 2
-            y = yk[corpo*2+1] + self.ESCALA * self.ALTURA / 2
+            x = R[corpo][0] + self.ESCALA * self.LARGURA / 2
+            y = R[corpo][1] + self.ESCALA * self.ALTURA / 2
             pygame.draw.circle(
                 self.superficie, 
                 self.CORES[corpo], 
@@ -84,20 +84,19 @@ class Animacao:
         
         for frame in geradora():
 
-            yk = frame[:self.quantidade_corpos*2]
+            R, P, E = frame
             if self.salvar: 
-                self.YK.append(yk)
+                self.YK.append(R)
                 if len(self.YK) == animacao['QUANTIDADE_ANTES_SALVAR']:
                     self.salvarPontos(self.YK, self.nomeArquivo)
                     self.YK = []
-            E = frame[-1]
 
             clock.tick(animacao['TAXA_ATUALIZACAO'])
             self.superficie.fill(animacao['FUNDO'])
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT: return
 
-            self.desenhar(yk)
+            self.desenhar(R)
 
             redimensionado = pygame.transform.smoothscale(self.superficie, self.tela.get_size())
             self.tela.blit(redimensionado, (0,0))
